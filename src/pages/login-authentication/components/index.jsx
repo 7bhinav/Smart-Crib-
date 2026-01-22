@@ -115,12 +115,7 @@ const LoginAuthentication = () => {
           </div>
 
           <div className="hidden lg:block">
-            <Image
-              src="public/crib.jpg"
-              alt="Infant in a secure baby crib monitored with medical equipment"
-              className="w-full h-64 object-cover rounded-2xl shadow-xl"
-            />
-          </div>
+           
         </div>
 
         {/* Right Section - Login Form */}

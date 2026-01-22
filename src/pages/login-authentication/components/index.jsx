@@ -114,8 +114,7 @@ const LoginAuthentication = () => {
           </div>
 
           {/* image removed as requested */}
-// Removed unused import
-// import Image from '../../../components/ui/AppImage';
+
         </div>
 
         {/* Right Section - Login Form */}

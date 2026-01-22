@@ -1,0 +1,9 @@
+node_modules/
+dist/
+build/
+.env
+.DS_Store
+/public/assets/images/*.jpg
+/public/assets/images/*.png
+/public/assets/images/*.jpeg
+public/assets/images/crib.jpg

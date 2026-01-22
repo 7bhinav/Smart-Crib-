@@ -1,0 +1,31 @@
+:root.dark {
+  --bg: #0b0f12;
+  --card: #0f1720;
+  --muted: #94a3b8;
+  --foreground: #e6eef6;
+  --border: #1f2937;
+  --primary: #3b82f6;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+}
+
+.dark body {
+  background: var(--bg);
+  color: var(--foreground);
+}
+
+.dark .bg-card { background: var(--card); }
+.dark .text-muted-foreground, .dark .muted { color: var(--muted); }
+.dark .text-foreground { color: var(--foreground); }
+.dark .border-border { border-color: var(--border); }
+.dark .bg-muted { background: rgba(255,255,255,0.02); }
+.dark .bg-primary { background: var(--primary); }
+
+/* utility overrides */
+.dark .hover\:bg-gray-100:hover { background: rgba(255,255,255,0.04); }
+.dark .bg-white { background: transparent; }
+.dark .text-primary { color: var(--primary); }
+.dark .bg-success/10 { background: rgba(16,185,129,0.08); }
+.dark .bg-warning/10 { background: rgba(245,158,11,0.08); }
+.dark .bg-error/10 { background: rgba(239,68,68,0.08); }

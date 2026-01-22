@@ -1,0 +1,379 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Primary Colors - Medical Blue */
+    --color-primary: #2563EB; /* blue-600 */
+    --color-primary-foreground: #FFFFFF; /* white */
+    
+    /* Secondary Colors - Calming Teal */
+    --color-secondary: #0F766E; /* teal-700 */
+    --color-secondary-foreground: #FFFFFF; /* white */
+    
+    /* Accent Colors - Sophisticated Purple */
+    --color-accent: #7C3AED; /* violet-600 */
+    --color-accent-foreground: #FFFFFF; /* white */
+    
+    /* Background & Surface */
+    --color-background: #FAFBFC; /* gray-50 */
+    --color-foreground: #1F2937; /* gray-800 */
+    --color-card: #FFFFFF; /* white */
+    --color-card-foreground: #1F2937; /* gray-800 */
+    --color-popover: #FFFFFF; /* white */
+    --color-popover-foreground: #1F2937; /* gray-800 */
+    
+    /* Muted Colors */
+    --color-muted: #F3F4F6; /* gray-100 */
+    --color-muted-foreground: #6B7280; /* gray-500 */
+    
+    /* Border & Input */
+    --color-border: rgba(148, 163, 184, 0.2); /* slate-400 with opacity */
+    --color-input: rgba(148, 163, 184, 0.2); /* slate-400 with opacity */
+    --color-ring: #2563EB; /* blue-600 */
+    
+    /* Status Colors */
+    --color-success: #059669; /* emerald-600 */
+    --color-success-foreground: #FFFFFF; /* white */
+    --color-warning: #D97706; /* amber-600 */
+    --color-warning-foreground: #FFFFFF; /* white */
+    --color-error: #DC2626; /* red-600 */
+    --color-error-foreground: #FFFFFF; /* white */
+    --color-destructive: #DC2626; /* red-600 */
+    --color-destructive-foreground: #FFFFFF; /* white */
+    
+    /* Typography */
+    --font-heading: 'Nunito Sans', sans-serif;
+    --font-body: 'Source Sans 3', sans-serif;
+    --font-caption: 'Inter', sans-serif;
+    --font-data: 'JetBrains Mono', monospace;
+    
+    /* Spacing & Layout */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 18px;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
+    --shadow-md: 0 3px 6px rgba(15, 23, 42, 0.12);
+    --shadow-lg: 0 6px 12px rgba(15, 23, 42, 0.14);
+    --shadow-xl: 0 20px 40px -8px rgba(15, 23, 42, 0.16);
+  }
+
+  .dark {
+    /* Primary Colors - Medical Blue (Dark) */
+    --color-primary: #3B82F6; /* blue-500 */
+    --color-primary-foreground: #FFFFFF; /* white */
+    
+    /* Secondary Colors - Calming Teal (Dark) */
+    --color-secondary: #14B8A6; /* teal-500 */
+    --color-secondary-foreground: #FFFFFF; /* white */
+    
+    /* Accent Colors - Sophisticated Purple (Dark) */
+    --color-accent: #8B5CF6; /* violet-500 */
+    --color-accent-foreground: #FFFFFF; /* white */
+    
+    /* Background & Surface */
+    --color-background: #0F1419; /* custom dark */
+    --color-foreground: rgba(255, 255, 255, 0.88); /* white with 88% opacity */
+    --color-card: #1A202C; /* gray-900 */
+    --color-card-foreground: rgba(255, 255, 255, 0.88); /* white with 88% opacity */
+    --color-popover: #1A202C; /* gray-900 */
+    --color-popover-foreground: rgba(255, 255, 255, 0.88); /* white with 88% opacity */
+    
+    /* Muted Colors */
+    --color-muted: #2D3748; /* gray-800 */
+    --color-muted-foreground: #9CA3AF; /* gray-400 */
+    
+    /* Border & Input */
+    --color-border: rgba(255, 255, 255, 0.1); /* white with opacity */
+    --color-input: rgba(255, 255, 255, 0.1); /* white with opacity */
+    --color-ring: #3B82F6; /* blue-500 */
+    
+    /* Status Colors */
+    --color-success: #10B981; /* emerald-500 */
+    --color-success-foreground: #FFFFFF; /* white */
+    --color-warning: #F59E0B; /* amber-500 */
+    --color-warning-foreground: #FFFFFF; /* white */
+    --color-error: #EF4444; /* red-500 */
+    --color-error-foreground: #FFFFFF; /* white */
+    --color-destructive: #EF4444; /* red-500 */
+    --color-destructive-foreground: #FFFFFF; /* white */
+    
+    /* Shadows (Dark Mode) */
+    --shadow-sm: 0 1px 3px rgba(255, 255, 255, 0.05);
+    --shadow-md: 0 3px 6px rgba(255, 255, 255, 0.05);
+    --shadow-lg: 0 6px 12px rgba(255, 255, 255, 0.05);
+    --shadow-xl: 0 20px 40px -8px rgba(255, 255, 255, 0.05);
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading font-semibold;
+  }
+
+  h1 {
+    font-size: 2.25rem;
+    line-height: 1.2;
+  }
+
+  h2 {
+    font-size: 1.875rem;
+    line-height: 1.25;
+  }
+
+  h3 {
+    font-size: 1.5rem;
+    line-height: 1.3;
+  }
+
+  h4 {
+    font-size: 1.25rem;
+    line-height: 1.4;
+  }
+
+  h5 {
+    font-size: 1.125rem;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 768px) {
+    body {
+      font-size: 15px;
+    }
+  }
+}
+
+@layer components {
+  /* Navigation Components */
+  .header-container {
+    @apply fixed top-0 left-0 right-0 z-[900] bg-card shadow-md;
+    height: 64px;
+  }
+
+  .header-content {
+    @apply flex items-center justify-between h-full px-4 lg:px-6;
+  }
+
+  .header-brand {
+    @apply flex items-center gap-3;
+  }
+
+  .header-logo {
+    @apply w-10 h-10 rounded-lg flex items-center justify-center;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  }
+
+  .header-title {
+    @apply text-xl font-bold text-foreground font-heading;
+  }
+
+  .header-actions {
+    @apply flex items-center gap-4;
+  }
+
+  .tab-navigation {
+    @apply sticky bg-card border-b border-border;
+    top: 64px;
+    z-index: 800;
+  }
+
+  .tab-navigation-content {
+    @apply flex items-center h-12 px-4 lg:px-6;
+  }
+
+  .tab-navigation-list {
+    @apply flex items-center gap-1;
+  }
+
+  .tab-navigation-item {
+    @apply relative flex items-center gap-2 px-6 py-3 text-sm font-medium transition-all duration-250;
+    @apply text-muted-foreground hover:text-foreground cursor-pointer;
+    @apply rounded-md hover:bg-muted;
+  }
+.tab-navigation-item.active  {
+    @apply text-primary;
+  }
+
+  .tab-navigation-item.active::after {
+    content: '';
+    @apply absolute bottom-0 left-0 right-0 h-0.5 bg-primary;
+  }
+
+  /* Alert Banner */
+  .alert-banner {
+    @apply fixed top-0 left-0 right-0 z-[1000] px-4 py-3;
+    @apply flex items-center justify-between gap-4;
+    @apply text-sm font-medium shadow-lg;
+  }
+
+  .alert-banner.critical {
+    @apply bg-error text-error-foreground;
+  }
+
+  .alert-banner.warning {
+    @apply bg-warning text-warning-foreground;
+  }
+
+  .alert-banner.info {
+    @apply bg-primary text-primary-foreground;
+  }
+
+  .alert-banner-content {
+    @apply flex items-center gap-3 flex-1;
+  }
+
+  .alert-banner-actions {
+    @apply flex items-center gap-2;
+  }
+
+  /* Connection Status */
+  .connection-status {
+    @apply flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium;
+  }
+.connection-status.connected  {
+    @apply text-success;
+  }
+.connection-status.disconnected  {
+    @apply text-error;
+  }
+.connection-status.reconnecting  {
+    @apply text-warning;
+  }
+
+  .connection-status-indicator {
+    @apply w-2 h-2 rounded-full;
+  }
+
+  .connection-status.connected .connection-status-indicator {
+    @apply bg-success animate-pulse;
+  }
+
+  .connection-status.disconnected .connection-status-indicator {
+    @apply bg-error;
+  }
+
+  .connection-status.reconnecting .connection-status-indicator {
+    @apply bg-warning animate-pulse;
+  }
+
+  /* Emergency Access Button */
+.emergency-access-button  {
+    @apply px-4 py-2 rounded-lg font-medium text-sm;
+    @apply bg-error text-error-foreground;
+    @apply active:scale-97;
+    @apply transition-all duration-250;
+    @apply shadow-md hover:shadow-lg;
+  }
+
+  /* Session Timeout Modal */
+  .session-modal-overlay {
+    @apply fixed inset-0 z-[1100] bg-background;
+    @apply flex items-center justify-center p-4;
+  }
+
+  .session-modal-content {
+    @apply bg-card rounded-xl shadow-xl p-8 max-w-md w-full;
+    @apply border border-border;
+  }
+
+  .session-modal-header {
+    @apply flex items-center gap-3 mb-6;
+  }
+.session-modal-icon  {
+    @apply w-12 h-12 rounded-full flex items-center justify-center;
+    @apply text-warning;
+  }
+
+  .session-modal-title {
+    @apply text-xl font-bold text-foreground;
+  }
+
+  .session-modal-body {
+    @apply mb-6 text-muted-foreground;
+  }
+
+  .session-modal-timer {
+    @apply text-3xl font-bold text-foreground font-data mb-2;
+  }
+
+  .session-modal-actions {
+    @apply flex gap-3;
+  }
+
+  /* Bottom Tab Navigation (Mobile) */
+  @media (max-width: 1023px) {
+    .tab-navigation {
+      @apply fixed bottom-0 left-0 right-0 top-auto;
+      @apply border-t border-b-0;
+      z-index: 800;
+    }
+
+    .tab-navigation-content {
+      @apply h-16 justify-center;
+    }
+
+    .tab-navigation-list {
+      @apply flex-1 justify-around max-w-md mx-auto;
+    }
+
+    .tab-navigation-item {
+      @apply flex-col gap-1 px-4 py-2 min-w-[72px];
+    }
+
+    .tab-navigation-item::after {
+      @apply hidden;
+    }
+
+    .tab-navigation-item.active {
+      @apply bg-transparent;
+    }
+  }
+
+  /* Utility Classes */
+  .smooth-transition {
+    transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .spring-transition {
+    transition: all 250ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .scale-press {
+    @apply active:scale-97;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .scale-97 {
+    transform: scale(0.97);
+  }
+
+  .scale-102 {
+    transform: scale(1.02);
+  }
+}

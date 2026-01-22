@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Icon from '../../../components/AppIcon';
-import Image from '../../../components/ui/AppImage';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 import SecurityBadge from './SecurityBadge';
@@ -114,8 +113,9 @@ const LoginAuthentication = () => {
             </div>
           </div>
 
-          <div className="hidden lg:block">
-           
+          {/* image removed as requested */}
+// Removed unused import
+// import Image from '../../../components/ui/AppImage';
         </div>
 
         {/* Right Section - Login Form */}

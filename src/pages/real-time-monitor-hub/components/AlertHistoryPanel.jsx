@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Icon from '../../../components/AppIcon';
+import ChatBot from '../../../components/ChatBot';
 
 const AlertHistoryPanel = ({ alerts }) => {
   const getSeverityIcon = (severity) => {
@@ -37,6 +38,8 @@ const AlertHistoryPanel = ({ alerts }) => {
 
   const [expanded, setExpanded] = useState(false);
   const visibleAlerts = expanded ? alerts : alerts?.slice(0, 3) || [];
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatContext, setChatContext] = useState('');
 
   return (
     <div className="bg-card rounded-xl border border-border p-4 md:p-6 h-full flex flex-col">
@@ -79,6 +82,20 @@ const AlertHistoryPanel = ({ alerts }) => {
                           (Threshold: {alert?.metric?.threshold} {alert?.metric?.unit})
                         </span>
                       )}
+
+                      {/* show chat button for high severity or BP alerts */}
+                      {(alert?.severity === 'critical' || (alert?.metric?.name || '').toLowerCase().includes('blood pressure')) && (
+                        <button
+                          className="ml-auto text-sm text-primary underline"
+                          onClick={() => {
+                            const ctx = `Alert: ${alert?.title} - ${alert?.message} Value: ${alert?.metric?.value} ${alert?.metric?.unit}`;
+                            setChatContext(ctx);
+                            setChatOpen(true);
+                          }}
+                        >
+                          Chat
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -97,6 +114,9 @@ const AlertHistoryPanel = ({ alerts }) => {
             {expanded ? 'Show less' : `Show all (${alerts?.length})`}
           </button>
         </div>
+      )}
+      {chatOpen && (
+        <ChatBot open={chatOpen} onClose={() => setChatOpen(false)} initialContext={chatContext} />
       )}
     </div>
   );

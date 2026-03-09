@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import Header from '../../components/ui/Header';
+import { useVitals } from '../../contexts/VitalsContext';
 import TabNavigation from '../../components/ui/TabNavigation';
 import AlertBanner from '../../components/ui/AlertBanner';
 import SessionTimeout from '../../components/ui/SessionTimeout';
@@ -26,6 +27,8 @@ const RealTimeMonitorHub = () => {
     airQuality: { value: 45, status: 'normal', trend: 'stable', trendValue: 2 },
     motionStatus: { value: 'Active', status: 'normal', trend: 'stable', trendValue: 0 }
   });
+
+  const { publishVitals, publishUrgent } = useVitals();
 
   const [chartData, setChartData] = useState([
     { time: '14:30', heartRate: 125, oxygenSaturation: 97, temperature: 98.4 },
@@ -71,6 +74,14 @@ const RealTimeMonitorHub = () => {
         message: 'Emergency access activated - All vital signs under immediate monitoring'
       });
     }
+    // Dev-only: force a high-temp urgent event on mount when VITE_DEV_FORCED_FEVER is set.
+    try {
+      if (import.meta.env.VITE_DEV_FORCED_FEVER === '1') {
+        publishUrgent({ type: 'high-temp', value: 102.4 });
+      }
+    } catch (e) {
+      // ignore in production
+    }
   }, [isEmergency]);
 
   useEffect(() => {
@@ -111,6 +122,21 @@ const RealTimeMonitorHub = () => {
                  parseFloat(newDataPoint?.temperature) < prev?.bodyTemperature?.value ? 'down' : 'stable'
         }
       }));
+      // notify context consumers
+      publishVitals({
+        heartRate: newDataPoint.heartRate,
+        oxygenSaturation: newDataPoint.oxygenSaturation,
+        bodyTemperature: parseFloat(newDataPoint.temperature)
+      });
+      // example urgent: very high heart rate
+      if (newDataPoint.heartRate > 160) {
+        publishUrgent({ type: 'high_heart_rate', value: newDataPoint.heartRate });
+      }
+      // urgent: high temperature (fever)
+      const temp = parseFloat(newDataPoint.temperature);
+      if (!Number.isNaN(temp) && temp >= 100.4) {
+        publishUrgent({ type: 'high-temp', value: temp });
+      }
     }, 2000);
 
     return () => clearInterval(interval);

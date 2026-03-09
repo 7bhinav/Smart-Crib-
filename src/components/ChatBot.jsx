@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Icon from './AppIcon';
+import { useVitals } from '../contexts/VitalsContext';
 
 // Local rule-based responder for on-device suggestions (no external API)
-function localResponder(messages) {
+function localResponder(messages, vitals = {}) {
   // Use the last user message or initial context
   const last = [...messages].reverse().find(m => m.role === 'user');
   const text = (last?.content || '').toLowerCase();
@@ -33,9 +34,28 @@ function localResponder(messages) {
     return lines.join('\n');
   }
 
-  // Generic suggestions for other alerts
-  if (text.includes('fever')) {
-    return 'For fever: monitor temperature, encourage fluids, use age-appropriate antipyretics per pediatric guidance, and seek care if >39°C or if the child is lethargic or not feeding.';
+  // Fever / high temperature guidance (improved human-like response)
+  if (text.includes('fever') || text.includes('high temp') || text.includes('high temperature') || text.includes('what to do in high temp')) {
+    const temp = Number(vitals?.bodyTemperature);
+    const reported = !Number.isNaN(temp) ? `Current temperature reading: ${temp}°F.` : '';
+    const lines = [
+      `Thanks — I can help with that. ${reported}`,
+      'Here are practical, human steps you can try right now:',
+      '- Re-check the temperature with a reliable thermometer to confirm the value (rectal is preferred for infants).',
+      '- Keep the child lightly dressed and the room comfortably cool — avoid over-bundling.',
+      "- Offer small, frequent sips of fluid to prevent dehydration (breastfeeding/formula for infants).",
+      "- Use age-appropriate antipyretics only when advised by a clinician. Do NOT give aspirin to children. Follow your pediatrician's dosing guidance or the dosage on the medicine label.",
+      '- For immediate comfort cooling, try a lukewarm sponge bath; avoid cold baths or alcohol rubs which can be harmful.',
+      '',
+      'When to seek urgent care or emergency help:',
+      '- If the child is having difficulty breathing, is hard to wake or unusually drowsy, has repeated vomiting, a seizure, an unusual rash, or otherwise appears very unwell: seek emergency care now.',
+      `- Infants under 3 months with a confirmed rectal temperature ≥100.4°F (38°C) should be evaluated by a clinician urgently.`,
+      `- For older infants/children: temperatures ≥104°F (40°C), persistent fever despite measures, or fever with severe symptoms warrant prompt medical attention.`,
+      '',
+      'If you tell me the child’s age and the exact reading I can give more specific next steps (for example specific antipyretic guidance to discuss with your pediatrician).'
+    ];
+
+    return lines.join('\n');
   }
 
   // fallback
@@ -43,6 +63,7 @@ function localResponder(messages) {
 }
 
 const ChatBot = ({ open, onClose, initialContext }) => {
+  const { vitals } = useVitals();
   const [messages, setMessages] = useState([
     { role: 'system', content: 'You are a clinical assistant for pediatric care. Provide concise, conservative, safety-first suggestions and clearly state when to seek emergency help.' },
     ...(initialContext ? [{ role: 'user', content: initialContext }] : [])
@@ -55,8 +76,12 @@ const ChatBot = ({ open, onClose, initialContext }) => {
       // if there is initial context, run a first local response
       const init = initialContext;
       if (init) {
-        const reply = localResponder([{ role: 'user', content: init }]);
+        const reply = localResponder([{ role: 'user', content: init }], vitals);
         setMessages((m) => [...m, { role: 'assistant', content: reply }]);
+      } else {
+        // greet using current vitals
+        const greeting = `Hi there — I can provide live vitals. Current heart rate: ${vitals?.heartRate ?? 'N/A'} BPM, SpO₂: ${vitals?.oxygenSaturation ?? 'N/A'}%, Temp: ${vitals?.bodyTemperature ?? 'N/A'}°F. How can I help?`;
+        setMessages((m) => [...m, { role: 'assistant', content: greeting }]);
       }
     }
   }, [open]);
@@ -72,10 +97,22 @@ const ChatBot = ({ open, onClose, initialContext }) => {
     const userMsg = { role: 'user', content: text };
     setMessages((m) => [...m, userMsg]);
     setInput('');
-
-    // local response (deterministic)
+    // smart local routing: queries about vitals -> reply with live numbers; otherwise use localResponder
     setTimeout(() => {
-      const reply = localResponder([...messages, userMsg]);
+      const q = text.toLowerCase();
+      let reply = null;
+
+      if (q.includes('heart') || q.includes('heart rate') || q.includes('bpm')) {
+        reply = `Current heart rate is ${vitals?.heartRate ?? 'N/A'} BPM. ${vitals?.heartRate > 140 ? 'This is elevated — recheck and consider urgent evaluation if symptomatic.' : ''}`;
+      } else if (q.includes('oxygen') || q.includes('spo2') || q.includes('o₂')) {
+        reply = `Current oxygen saturation is ${vitals?.oxygenSaturation ?? 'N/A'}%. ${vitals?.oxygenSaturation < 95 ? 'This is below typical thresholds — monitor closely and seek care if worsening.' : ''}`;
+      } else if (q.includes('temp') || q.includes('temperature') || q.includes('fever')) {
+        reply = `Current body temperature is ${vitals?.bodyTemperature ?? 'N/A'}°F. ${vitals?.bodyTemperature > 100.4 ? 'This suggests fever — consider antipyretic per pediatric guidance.' : ''}`;
+      } else if (q.match(/hi|hello|hey|how are you/)) {
+        reply = `Hello! I'm your in-app clinical assistant. I can report live vitals and suggest immediate safety steps. How can I help today?`;
+      }
+
+  if (!reply) reply = localResponder([...messages, userMsg], vitals);
       setMessages((m) => [...m, { role: 'assistant', content: reply }]);
     }, 300);
   };

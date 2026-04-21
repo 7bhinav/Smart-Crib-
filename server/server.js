@@ -1,17 +1,25 @@
-export default async function handler(req, res) {
-  // Enable CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import fetch from 'node-fetch';
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
+dotenv.config();
 
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Only POST allowed' });
-  }
+const app = express();
+const PORT = process.env.PORT || 5000;
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', message: 'Server is running' });
+});
+
+// Chat API endpoint
+app.post('/api/chat', async (req, res) => {
   try {
     const { message } = req.body;
 
@@ -19,15 +27,17 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Message is required' });
     }
 
-    if (!process.env.GROQ_API_KEY) {
+    if (!GROQ_API_KEY) {
       console.error('GROQ_API_KEY not set');
       return res.status(500).json({ error: 'API key not configured' });
     }
 
+    console.log('Processing chat message:', message.substring(0, 50) + '...');
+
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+        Authorization: `Bearer ${GROQ_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -51,15 +61,29 @@ export default async function handler(req, res) {
     if (!response.ok) {
       const errorData = await response.json();
       console.error('GROQ API error:', errorData);
-      return res.status(response.status).json({ error: 'Failed to get response from AI' });
+      return res.status(response.status).json({ error: 'Failed to get response from AI', details: errorData });
     }
 
     const data = await response.json();
     const reply = data?.choices?.[0]?.message?.content || 'No response generated';
 
+    console.log('Chat response generated successfully');
     return res.status(200).json({ reply });
   } catch (error) {
     console.error('Chat handler error:', error);
     return res.status(500).json({ error: 'Server error: ' + error.message });
   }
-}
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Server error:', err);
+  res.status(500).json({ error: 'Internal server error' });
+});
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`📝 Chat API available at http://localhost:${PORT}/api/chat`);
+  console.log(`✅ Health check at http://localhost:${PORT}/health`);
+});

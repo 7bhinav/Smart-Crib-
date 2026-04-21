@@ -2,85 +2,61 @@ import React, { useState, useEffect, useRef } from 'react';
 import Icon from './AppIcon';
 import { useVitals } from '../contexts/VitalsContext';
 
-// Local rule-based responder for on-device suggestions (no external API)
-function localResponder(messages, vitals = {}) {
-  // Use the last user message or initial context
-  const last = [...messages].reverse().find(m => m.role === 'user');
-  const text = (last?.content || '').toLowerCase();
-
-  // Heuristic: detect blood pressure values like "BP 150/95" or "150 mmhg"
-  const bpMatch = text.match(/(\b(\d{2,3})\/(\d{2,3})\b)|((\d{2,3})\s?mmhg)/i);
-
-  if (bpMatch) {
-    // Extract numbers if available
-    let systolic = null, diastolic = null;
-    if (bpMatch[2] && bpMatch[3]) {
-      systolic = parseInt(bpMatch[2], 10);
-      diastolic = parseInt(bpMatch[3], 10);
-    } else if (bpMatch[5]) {
-      systolic = parseInt(bpMatch[5], 10);
-    }
-
-    const lines = [];
-    lines.push('I detected elevated blood pressure readings. Follow these steps:');
-    if (systolic && diastolic) {
-      lines.push(`- Recent reading: ${systolic}/${diastolic} mmHg.`);
-    }
-    lines.push('- Re-measure after 5 minutes in a calm, seated position.');
-    lines.push('- Ensure the cuff size is correct and placed on the upper arm.');
-    lines.push('- If the child shows symptoms (difficulty breathing, altered consciousness, severe headache, vomiting, seizures) seek emergency care immediately.');
-    lines.push('- For asymptomatic elevated readings: log values, ensure hydration, avoid stimulants, and contact the pediatrician for follow-up.');
-    lines.push('- If BP remains persistently high on repeated measurements, seek urgent pediatric evaluation.');
-    return lines.join('\n');
-  }
-
-  // Fever / high temperature guidance (improved human-like response)
-  if (text.includes('fever') || text.includes('high temp') || text.includes('high temperature') || text.includes('what to do in high temp')) {
-    const temp = Number(vitals?.bodyTemperature);
-    const reported = !Number.isNaN(temp) ? `Current temperature reading: ${temp}°F.` : '';
-    const lines = [
-      `Thanks — I can help with that. ${reported}`,
-      'Here are practical, human steps you can try right now:',
-      '- Re-check the temperature with a reliable thermometer to confirm the value (rectal is preferred for infants).',
-      '- Keep the child lightly dressed and the room comfortably cool — avoid over-bundling.',
-      "- Offer small, frequent sips of fluid to prevent dehydration (breastfeeding/formula for infants).",
-      "- Use age-appropriate antipyretics only when advised by a clinician. Do NOT give aspirin to children. Follow your pediatrician's dosing guidance or the dosage on the medicine label.",
-      '- For immediate comfort cooling, try a lukewarm sponge bath; avoid cold baths or alcohol rubs which can be harmful.',
-      '',
-      'When to seek urgent care or emergency help:',
-      '- If the child is having difficulty breathing, is hard to wake or unusually drowsy, has repeated vomiting, a seizure, an unusual rash, or otherwise appears very unwell: seek emergency care now.',
-      `- Infants under 3 months with a confirmed rectal temperature ≥100.4°F (38°C) should be evaluated by a clinician urgently.`,
-      `- For older infants/children: temperatures ≥104°F (40°C), persistent fever despite measures, or fever with severe symptoms warrant prompt medical attention.`,
-      '',
-      'If you tell me the child’s age and the exact reading I can give more specific next steps (for example specific antipyretic guidance to discuss with your pediatrician).'
-    ];
-
-    return lines.join('\n');
-  }
-
-  // fallback
-  return "I can't analyze that precisely without measurements. For urgent signs (difficulty breathing, persistent vomiting, seizure, unresponsiveness) seek emergency care. Otherwise document symptoms and contact the child's pediatrician.";
-}
-
 const ChatBot = ({ open, onClose, initialContext }) => {
   const { vitals } = useVitals();
   const [messages, setMessages] = useState([
-    { role: 'system', content: 'You are a clinical assistant for pediatric care. Provide concise, conservative, safety-first suggestions and clearly state when to seek emergency help.' },
+    { role: 'system', content: 'You are a clinical assistant for pediatric care.' },
     ...(initialContext ? [{ role: 'user', content: initialContext }] : [])
   ]);
   const [input, setInput] = useState('');
   const bottomRef = useRef(null);
 
+  const sendMessage = async (text) => {
+    if (!text?.trim()) return;
+    const userMsg = { role: 'user', content: text };
+    setMessages((m) => [...m, userMsg]);
+    setInput('');
+    
+    // Add thinking message
+    setMessages((m) => [...m, { role: 'assistant', content: 'Thinking...' }]);
+    
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const answer = data.reply || 'No response available.';
+      
+      setMessages((m) => {
+        const updated = [...m];
+        updated[updated.length - 1] = { role: 'assistant', content: answer };
+        return updated;
+      });
+    } catch (err) {
+      console.error('Chat API error:', err);
+      setMessages((m) => {
+        const updated = [...m];
+        updated[updated.length - 1] = { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' };
+        return updated;
+      });
+    }
+  };
+
   useEffect(() => {
     if (open) {
-      // if there is initial context, run a first local response
       const init = initialContext;
       if (init) {
-        const reply = localResponder([{ role: 'user', content: init }], vitals);
-        setMessages((m) => [...m, { role: 'assistant', content: reply }]);
+        setMessages((m) => [...m, { role: 'user', content: init }]);
+        sendMessage(init);
       } else {
-        // greet using current vitals
-        const greeting = `Hi there — I can provide live vitals. Current heart rate: ${vitals?.heartRate ?? 'N/A'} BPM, SpO₂: ${vitals?.oxygenSaturation ?? 'N/A'}%, Temp: ${vitals?.bodyTemperature ?? 'N/A'}°F. How can I help?`;
+        const greeting = `Hi there. Current vitals - Heart: ${vitals?.heartRate ?? 'N/A'} BPM, O2: ${vitals?.oxygenSaturation ?? 'N/A'}%, Temp: ${vitals?.bodyTemperature ?? 'N/A'}F. How can I help?`;
         setMessages((m) => [...m, { role: 'assistant', content: greeting }]);
       }
     }
@@ -91,31 +67,6 @@ const ChatBot = ({ open, onClose, initialContext }) => {
   }, [messages]);
 
   if (!open) return null;
-
-  const sendMessage = (text) => {
-    if (!text?.trim()) return;
-    const userMsg = { role: 'user', content: text };
-    setMessages((m) => [...m, userMsg]);
-    setInput('');
-    // smart local routing: queries about vitals -> reply with live numbers; otherwise use localResponder
-    setTimeout(() => {
-      const q = text.toLowerCase();
-      let reply = null;
-
-      if (q.includes('heart') || q.includes('heart rate') || q.includes('bpm')) {
-        reply = `Current heart rate is ${vitals?.heartRate ?? 'N/A'} BPM. ${vitals?.heartRate > 140 ? 'This is elevated — recheck and consider urgent evaluation if symptomatic.' : ''}`;
-      } else if (q.includes('oxygen') || q.includes('spo2') || q.includes('o₂')) {
-        reply = `Current oxygen saturation is ${vitals?.oxygenSaturation ?? 'N/A'}%. ${vitals?.oxygenSaturation < 95 ? 'This is below typical thresholds — monitor closely and seek care if worsening.' : ''}`;
-      } else if (q.includes('temp') || q.includes('temperature') || q.includes('fever')) {
-        reply = `Current body temperature is ${vitals?.bodyTemperature ?? 'N/A'}°F. ${vitals?.bodyTemperature > 100.4 ? 'This suggests fever — consider antipyretic per pediatric guidance.' : ''}`;
-      } else if (q.match(/hi|hello|hey|how are you/)) {
-        reply = `Hello! I'm your in-app clinical assistant. I can report live vitals and suggest immediate safety steps. How can I help today?`;
-      }
-
-  if (!reply) reply = localResponder([...messages, userMsg], vitals);
-      setMessages((m) => [...m, { role: 'assistant', content: reply }]);
-    }, 300);
-  };
 
   const handleSubmit = (e) => {
     e?.preventDefault();
@@ -133,7 +84,7 @@ const ChatBot = ({ open, onClose, initialContext }) => {
             </div>
             <div>
               <div className="text-sm font-semibold text-foreground">Clinical Chat Assistant</div>
-              <div className="text-xs text-muted-foreground">On-device guidance (not a substitute for medical advice)</div>
+              <div className="text-xs text-muted-foreground">AI-powered guidance (not medical advice)</div>
             </div>
           </div>
           <button className="p-2 rounded-md" onClick={onClose} aria-label="Close chat">
@@ -157,7 +108,7 @@ const ChatBot = ({ open, onClose, initialContext }) => {
             className="flex-1 bg-popover border border-border rounded-md p-2 text-sm"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Type a question (e.g., what to do for high blood pressure?)"
+            placeholder="Ask a question about baby care..."
             aria-label="Chat input"
           />
           <button type="submit" className="px-3 py-2 bg-primary text-white rounded-md">

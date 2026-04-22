@@ -1,4 +1,4 @@
-export default async (req, res) => {
+module.exports = async (req, res) => {
   try {
     // Enable CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -84,4 +84,4 @@ export default async (req, res) => {
       message: error?.message
     });
   }
-}
+};

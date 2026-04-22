@@ -31,9 +31,16 @@ const ChatBot = ({ open, onClose, initialContext }) => {
       console.log('Response status:', response.status);
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        const errorMsg = errorData.error || `HTTP ${response.status}`;
+        let errorData = { error: 'Unknown error' };
+        try {
+          errorData = await response.json();
+        } catch (parseErr) {
+          const text = await response.text();
+          console.error('Response text:', text);
+          errorData = { error: text || 'Unknown error' };
+        }
         console.error('API error response:', errorData);
+        const errorMsg = errorData.error || errorData?.details || `HTTP ${response.status}`;
         throw new Error(errorMsg);
       }
 
@@ -51,7 +58,7 @@ const ChatBot = ({ open, onClose, initialContext }) => {
       const errorMsg = err.message || 'Unknown error occurred';
       setMessages((m) => {
         const updated = [...m];
-        updated[updated.length - 1] = { role: 'assistant', content: `Error: ${errorMsg}. Please check the browser console for details.` };
+        updated[updated.length - 1] = { role: 'assistant', content: `Error: ${errorMsg}` };
         return updated;
       });
     }

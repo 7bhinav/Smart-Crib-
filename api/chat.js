@@ -8,6 +8,15 @@ module.exports = async (req, res) => {
     return res.status(200).end();
   }
 
+  // Health check
+  if (req.method === 'GET') {
+    return res.status(200).json({ 
+      status: 'ok', 
+      hasApiKey: !!process.env.GROQ_API_KEY,
+      message: 'Chat API is running'
+    });
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Only POST allowed' });
   }
@@ -22,13 +31,13 @@ module.exports = async (req, res) => {
     const apiKey = process.env.GROQ_API_KEY;
     
     if (!apiKey) {
-      console.error('GROQ_API_KEY environment variable is not set');
-      return res.status(500).json({ error: 'API key not configured on server', configured: false });
+      console.error('GROQ_API_KEY not set. Available env vars:', Object.keys(process.env).filter(k => k.includes('GROQ') || k.includes('API') || k.includes('KEY')));
+      return res.status(500).json({ error: 'API key not configured', code: 'MISSING_API_KEY' });
     }
 
-    console.log('Processing chat message from Vercel');
+    console.log('Processing chat message, API key length:', apiKey.length);
 
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -52,24 +61,27 @@ module.exports = async (req, res) => {
       }),
     });
 
-    if (!response.ok) {
-      const errorData = await response.text();
-      console.error('GROQ API error:', response.status, errorData);
-      return res.status(response.status).json({ 
-        error: 'Failed to get response from AI',
-        details: errorData 
+    if (!groqResponse.ok) {
+      const errorText = await groqResponse.text();
+      console.error('GROQ API failed:', groqResponse.status, errorText);
+      return res.status(500).json({ 
+        error: `GROQ API error: ${groqResponse.status}`,
+        code: 'GROQ_API_ERROR',
+        details: errorText.substring(0, 500)
       });
     }
 
-    const data = await response.json();
+    const data = await groqResponse.json();
     const reply = data?.choices?.[0]?.message?.content || 'No response generated';
 
+    console.log('Chat response generated successfully');
     return res.status(200).json({ reply });
   } catch (error) {
-    console.error('Chat handler error:', error.message);
+    console.error('Chat API error:', error.message, error);
     return res.status(500).json({ 
       error: 'Server error: ' + error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      code: 'SERVER_ERROR',
+      type: error.name
     });
   }
 }

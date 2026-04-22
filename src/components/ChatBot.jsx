@@ -31,16 +31,19 @@ const ChatBot = ({ open, onClose, initialContext }) => {
       console.log('Response status:', response.status);
 
       if (!response.ok) {
-        let errorData = { error: 'Unknown error' };
+        // Read the body only once - as text first
+        const responseText = await response.text();
+        console.error('Response text:', responseText);
+        
+        let errorMsg = `HTTP ${response.status}`;
         try {
-          errorData = await response.json();
-        } catch (parseErr) {
-          const text = await response.text();
-          console.error('Response text:', text);
-          errorData = { error: text || 'Unknown error' };
+          const errorData = JSON.parse(responseText);
+          errorMsg = errorData.error || errorMsg;
+        } catch (e) {
+          errorMsg = responseText || errorMsg;
         }
-        console.error('API error response:', errorData);
-        const errorMsg = errorData.error || errorData?.details || `HTTP ${response.status}`;
+        
+        console.error('API error:', errorMsg);
         throw new Error(errorMsg);
       }
 

@@ -63,19 +63,14 @@ const ChatBot = ({ open, onClose, initialContext }) => {
     setIsTyping(true);
 
     try {
-      console.log('Sending message to /api/chat');
-
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text }),
       });
 
-      console.log('Response status:', response.status);
-
       if (!response.ok) {
         const responseText = await response.text();
-        console.error('Response text:', responseText);
 
         let errorMsg = `HTTP ${response.status}`;
         try {
@@ -93,14 +88,13 @@ const ChatBot = ({ open, onClose, initialContext }) => {
 
       setIsTyping(false);
 
-      // ✅ Add empty assistant message first
+      // add empty message
       setMessages((m) => [...m, { role: 'assistant', content: '' }]);
 
-      // ✅ Stream response
+      // stream response
       await streamText(answer);
 
     } catch (err) {
-      console.error('Chat API error:', err.message, err);
       setIsTyping(false);
 
       setMessages((m) => [
@@ -164,12 +158,22 @@ const ChatBot = ({ open, onClose, initialContext }) => {
             .map((m, idx) => (
               <div key={idx} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[80%] p-3 rounded-md ${m.role === 'user' ? 'bg-primary text-white' : 'bg-muted/60 text-foreground'}`}>
-                  <div className="text-sm whitespace-pre-wrap">{m.content}</div>
+
+                  {/* ✅ UPDATED TEXT RENDERING */}
+                  <div
+                    className="text-sm whitespace-pre-wrap"
+                    dangerouslySetInnerHTML={{
+                      __html: m.content
+                        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+                        .replace(/\n/g, "<br/>")
+                    }}
+                  />
+
                 </div>
               </div>
             ))}
 
-          {/* ✅ Typing indicator */}
+          {/* Typing indicator */}
           {isTyping && (
             <div className="flex justify-start">
               <div className="bg-muted/60 p-3 rounded-md flex gap-1">

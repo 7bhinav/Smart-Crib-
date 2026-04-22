@@ -1,4 +1,4 @@
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   try {
     // Enable CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -48,7 +48,7 @@ module.exports = async (req, res) => {
         messages: [
           {
             role: 'system',
-            content: 'You are a helpful pediatric clinical assistant. Provide safe, accurate, and concise responses about baby care, vital signs monitoring, and when to seek medical help. Always emphasize the importance of consulting with a healthcare provider for serious concerns.',
+            content: 'You are a helpful pediatric clinical assistant...',
           },
           {
             role: 'user',
@@ -77,6 +77,7 @@ module.exports = async (req, res) => {
     }
 
     return res.status(200).json({ reply });
+
   } catch (error) {
     console.error('API error:', error);
     return res.status(500).json({ 
@@ -84,4 +85,4 @@ module.exports = async (req, res) => {
       message: error?.message
     });
   }
-};
+}

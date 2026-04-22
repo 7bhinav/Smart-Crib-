@@ -1,5 +1,9 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "framework": "vite"
+  "framework": "vite",
+  "api": {
+    "directory": "api",
+    "runtime": "nodejs18.x"
+  }
 }

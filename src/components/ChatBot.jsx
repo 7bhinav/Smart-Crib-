@@ -21,17 +21,24 @@ const ChatBot = ({ open, onClose, initialContext }) => {
     setMessages((m) => [...m, { role: 'assistant', content: 'Thinking...' }]);
     
     try {
+      console.log('Sending message to /api/chat');
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text }),
       });
 
+      console.log('Response status:', response.status);
+
       if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        const errorMsg = errorData.error || `HTTP ${response.status}`;
+        console.error('API error response:', errorData);
+        throw new Error(errorMsg);
       }
 
       const data = await response.json();
+      console.log('API response:', data);
       const answer = data.reply || 'No response available.';
       
       setMessages((m) => {
@@ -40,10 +47,11 @@ const ChatBot = ({ open, onClose, initialContext }) => {
         return updated;
       });
     } catch (err) {
-      console.error('Chat API error:', err);
+      console.error('Chat API error:', err.message, err);
+      const errorMsg = err.message || 'Unknown error occurred';
       setMessages((m) => {
         const updated = [...m];
-        updated[updated.length - 1] = { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' };
+        updated[updated.length - 1] = { role: 'assistant', content: `Error: ${errorMsg}. Please check the browser console for details.` };
         return updated;
       });
     }

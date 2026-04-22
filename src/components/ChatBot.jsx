@@ -112,7 +112,7 @@ const ChatBot = ({ open, onClose, initialContext }) => {
         setMessages((m) => [...m, { role: 'user', content: init }]);
         sendMessage(init);
       } else {
-        const greeting = `Hi there! I'm your health assistant. How can I help you? You can ask me about baby care, vital signs, or when to seek medical help.`;
+        const greeting = `Hello. I’m your clinical health assistant from Neosecure Monitoring Systems. How may I assist you today?.`;
 
         setMessages((m) => [...m, { role: 'assistant', content: greeting }]);
       }

@@ -112,7 +112,7 @@ const ChatBot = ({ open, onClose, initialContext }) => {
         setMessages((m) => [...m, { role: 'user', content: init }]);
         sendMessage(init);
       } else {
-        const greeting = `Hi there. Current vitals - Heart: ${vitals?.heartRate ?? 'N/A'} BPM, O2: ${vitals?.oxygenSaturation ?? 'N/A'}%, Temp: ${vitals?.bodyTemperature ?? 'N/A'}F. How can I help?`;
+        const greeting = `Hi there! I'm your health assistant. How can I help you? You can ask me about baby care, vital signs, or when to seek medical help.`;
 
         setMessages((m) => [...m, { role: 'assistant', content: greeting }]);
       }
